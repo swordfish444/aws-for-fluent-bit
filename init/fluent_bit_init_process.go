@@ -100,7 +100,7 @@ func getECSTaskMetadata(httpClient HTTPClient) ECSTaskMetadata {
 	metadata.ECS_TASK_DEFINITION = metadata.ECS_FAMILY + ":" + metadata.ECS_REVISION
 
 	// per ECS task metadata docs, Cluster can be an ARN or the name
-	if (strings.Contains(metadata.ECS_CLUSTER, "/")) {
+	if strings.Contains(metadata.ECS_CLUSTER, "/") {
 		clusterARN, err := arn.Parse(metadata.ECS_CLUSTER)
 		if err != nil {
 			logrus.Fatalf("[FluentBit Init Process] Failed to parse ECS Cluster ARN: %s %s\n", metadata.ECS_CLUSTER, err)
@@ -257,6 +257,12 @@ func createS3Client() {
 	region := "us-east-1"
 	if metadataRegion != "" {
 		region = metadataRegion
+	}
+
+	// if env AWS_S3_REGION is set, then use it as the region for S3 client
+	os_s3_region := os.Getenv("AWS_S3_REGION")
+	if os_s3_region != "" {
+		region = os_s3_region
 	}
 
 	s3Client = s3.New(session.Must(session.NewSession(&aws.Config{
